@@ -1,37 +1,67 @@
-#include <ctype.h>
-#include <stdbool.h>
-#include <stdio.h>
-#include <sys/resource.h>
-#include <sys/time.h>
-/* #include <dict.h> */
+#include "../include/sushi.h"
 
-#define TEXT "alice.txt"
-#define LENGTH 45
-
-int main(void)
+char	*read_fd(int ifd, size_t *size)
 {
-	struct rusage before, after;
-	double time_load = 0.0, time_mimic = 0.0;
+	int		n;
+	char	buf[S_BUFSIZ + 1];
+	char	*data;
+	char	*old;
 
-	char *text = TEXT;
-	if ((FILE *file = fopen(text, "r")) == NULL)
+	data = NULL;
+	n = 0;
+	while ((n = read(ifd, buf, S_BUFSIZ)) > 0)
 	{
-		printf("Could not open %s\n", text);
-		// unload();
+		buf[n] = '\0';
+		if (data == NULL)
+			data = txtdup(buf, n);
+		else
+		{
+			old = data;
+			data = txtcat(data, buf, *size, n);
+			free(old);
+		}
+		*size += n;
+	}
+	return (data);
+}
+
+int		main(int argc, char *argv[])
+{
+	char			*filename;
+	char			*data;
+	int				ifd;
+	size_t			size;
+	char			**strs;
+	Dict			dict;
+	char			**mimic_strs;
+	char			*mimic_str;
+
+	filename = (argc == 2) ? argv[1] : TEXT;
+	printf("opening %s!\n", filename);
+	if ((ifd = open(filename, O_RDWR, 0)) == -1)
+	{
+		printf("error opening file\n");
 		return (1);
 	}
+	data = read_fd(ifd, &size);
+	strs = txtsplit(data);
+	dict = load_dict(strs);
 
-	// fgetc (try mallocing every word)
-	// or read entire file and split
+	// mimic
+	mimic_strs = mimic(dict, 13, " ");
+	mimic_str = txtjoin(13, mimic_strs, " ");
+	printf("%s\n", mimic_str);
 
-	if (ferror(file))
-	{
-		fclose(file);
-		printf("Error reading %s\n", text);
-		return (1);
-	}
-	fclose(file);
-	// unload()
+	free(data);
+	for (int i = 0; strs[i]; i++)
+		free(strs[i]);
+	free(strs);
+	for (int j = 0; mimic_strs[j]; j++)
+		free(mimic_strs[j]);
+	free(mimic_strs);
+	free(mimic_str);
+	dict_destroy(dict);
+	close(ifd);
 
 	return (0);
 }
