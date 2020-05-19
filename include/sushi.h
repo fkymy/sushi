@@ -4,18 +4,18 @@
 # include <stdio.h>
 # include <stdlib.h>
 # include <unistd.h>
-// # include <ctype.h>
+# include <ctype.h>
 # include <stdbool.h>
-/* #include <sys/resource.h> */
-/* #include <sys/time.h> */
-/* #include <dict.h> */
+# include <sys/resource.h>
+# include <sys/time.h>
 # include <fcntl.h>
 # include <libgen.h>
-# include <time.h>
 # include <string.h>
+# include <stdint.h>
+# include <stdarg.h>
 # include "dict.h"
 
-# define TEXT "alice.txt"
+# define TEXT "README"
 # define S_BUFSIZ 1024
 # define LENGTH 45
 
@@ -24,6 +24,7 @@ char	*txtdup(char *buf, int size);
 char	**txtsplit(char *str);
 int		is_space(char c);
 int		wc(char *str);
+int		txtcmp(char *s1, char *s2);
 
 Dict	load_dict(char **strs);
 char	**mimic(Dict d, int num, char *word);
